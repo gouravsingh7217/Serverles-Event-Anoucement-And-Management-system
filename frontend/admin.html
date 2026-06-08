@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EventPulse — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;
+    --accent:#ff4d6d;--accent2:#7c3aed;--accent3:#00d9ff;
+    --text:#e8e8f0;--muted:#6b6b88;--success:#00e676;--warn:#ffd600;
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;}
+
+  /* BG */
+  .orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(80px);z-index:0;animation:orbF 10s ease-in-out infinite;}
+  .orb-1{width:600px;height:600px;background:radial-gradient(circle,rgba(124,58,237,0.1) 0%,transparent 70%);top:-200px;left:-200px;animation-delay:0s;}
+  .orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(255,77,109,0.07) 0%,transparent 70%);bottom:-100px;right:-100px;animation-delay:-4s;}
+  @keyframes orbF{0%,100%{transform:translate(0,0)}50%{transform:translate(20px,-15px)}}
+  .grid-lines{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(42,42,58,0.2) 1px,transparent 1px),linear-gradient(90deg,rgba(42,42,58,0.2) 1px,transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 100% 100% at 50% 0%,black 30%,transparent 100%);}
+
+  /* NAV */
+  .topnav{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:66px;background:rgba(18,18,26,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:0 4px 30px rgba(0,0,0,0.3);}
+  .topnav::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.4),rgba(0,217,255,0.3),transparent);}
+  .nav-brand{font-family:var(--font-display);font-size:30px;letter-spacing:4px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;transition:filter 0.3s;}
+  .nav-brand:hover{filter:drop-shadow(0 0 12px rgba(255,77,109,0.4));}
+  .nav-right{display:flex;align-items:center;gap:14px;}
+  .nav-user{font-size:13px;color:var(--muted);font-family:var(--font-mono);}
+  .nav-role-badge{padding:4px 12px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;background:rgba(255,77,109,0.12);color:var(--accent);border:1px solid rgba(255,77,109,0.3);animation:badgePulse 3s ease-in-out infinite;}
+  @keyframes badgePulse{0%,100%{box-shadow:0 0 0 0 rgba(255,77,109,0)}50%{box-shadow:0 0 0 4px rgba(255,77,109,0.08)}}
+  .btn-logout{padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.25s;font-family:var(--font-body);}
+  .btn-logout:hover{border-color:var(--accent);color:var(--accent);background:rgba(255,77,109,0.06);transform:translateY(-1px);}
+
+  /* BODY */
+  .dash-body{padding:32px;max-width:1200px;margin:0 auto;position:relative;z-index:1;}
+
+  /* STATS */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px;}
+  .stat-card{background:rgba(18,18,26,0.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:28px;position:relative;overflow:hidden;cursor:default;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);animation:statIn 0.6s cubic-bezier(0.16,1,0.3,1) both;}
+  .stat-card:nth-child(1){animation-delay:0.05s}.stat-card:nth-child(2){animation-delay:0.12s}.stat-card:nth-child(3){animation-delay:0.19s}
+  @keyframes statIn{from{opacity:0;transform:translateY(20px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;transition:height 0.3s;}
+  .stat-card:nth-child(1)::before{background:linear-gradient(90deg,var(--accent),rgba(255,77,109,0));}
+  .stat-card:nth-child(2)::before{background:linear-gradient(90deg,var(--accent2),rgba(124,58,237,0));}
+  .stat-card:nth-child(3)::before{background:linear-gradient(90deg,var(--accent3),rgba(0,217,255,0));}
+  .stat-card:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(0,0,0,0.4);border-color:rgba(124,58,237,0.3);}
+  .stat-label{font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+  .stat-value{font-family:var(--font-display);font-size:52px;letter-spacing:1px;line-height:1;}
+
+  /* TABS */
+  .dash-tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:28px;}
+  .dash-tab{padding:13px 26px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;margin-bottom:-1px;transition:all 0.25s;letter-spacing:0.5px;}
+  .dash-tab.active{border-bottom-color:var(--accent);color:var(--text);}
+  .dash-tab:hover{color:var(--text);}
+  .tab-panel{display:none;animation:panelIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+  .tab-panel.active{display:block;}
+  @keyframes panelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+  /* SECTION */
+  .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .section-title{font-family:var(--font-display);font-size:34px;letter-spacing:2px;color:var(--text);}
+  .section-title span{color:var(--accent);}
+
+  /* ADD EVENT BUTTON */
+  .btn-add-event{padding:11px 24px;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:11px;color:#fff;font-family:var(--font-body);font-weight:600;font-size:13px;cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(255,77,109,0.25);}
+  .btn-add-event::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transition:left 0.5s;}
+  .btn-add-event:hover::before{left:100%;}
+  .btn-add-event:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,77,109,0.4);}
+
+  /* EVENT GRID */
+  .events-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px;}
+  .event-card{background:rgba(18,18,26,0.8);backdrop-filter:blur(10px);border:1px solid var(--border);border-radius:16px;padding:24px;position:relative;overflow:hidden;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);animation:cardIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+  @keyframes cardIn{from{opacity:0;transform:translateY(24px) scale(0.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+  .event-card:hover{transform:translateY(-6px);border-color:rgba(124,58,237,0.45);box-shadow:0 20px 50px rgba(0,0,0,0.4),0 0 0 1px rgba(124,58,237,0.1);}
+  .event-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent2),var(--accent3));opacity:0;transition:opacity 0.3s;}
+  .event-card:hover::before{opacity:1;}
+  .event-type-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;}
+  .type-upcoming{background:rgba(0,230,118,0.1);color:var(--success);border:1px solid rgba(0,230,118,0.25);}
+  .type-past{background:rgba(107,107,136,0.12);color:var(--muted);border:1px solid var(--border);}
+  .event-title{font-family:var(--font-display);font-size:24px;letter-spacing:1px;margin-bottom:8px;line-height:1.2;}
+  .event-desc{font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:16px;}
+  .event-meta{display:flex;flex-wrap:wrap;gap:10px;font-family:var(--font-mono);font-size:11px;color:var(--muted);}
+  .event-meta span{display:flex;align-items:center;gap:5px;}
+  .admin-actions{display:flex;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid rgba(42,42,58,0.8);flex-wrap:wrap;}
+  .btn-sm{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all 0.25s cubic-bezier(0.16,1,0.3,1);font-family:var(--font-body);white-space:nowrap;}
+  .btn-edit{border-color:var(--accent2);color:var(--accent2);background:transparent;}
+  .btn-delete{border-color:rgba(255,77,109,0.4);color:var(--accent);background:transparent;}
+  .btn-announce{border-color:var(--accent3);color:var(--accent3);background:transparent;margin-left:auto;}
+  .btn-edit:hover{background:rgba(124,58,237,0.12);transform:translateY(-2px);}
+  .btn-delete:hover{background:rgba(255,77,109,0.1);transform:translateY(-2px);}
+  .btn-announce:hover{background:rgba(0,217,255,0.1);transform:translateY(-2px);}
+
+  /* ═══════════════════════════════════════
+     ANNOUNCE FORM — full redesign
+  ═══════════════════════════════════════ */
+  .announce-form{background:rgba(18,18,26,0.8);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:18px;padding:34px;max-width:780px;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+
+  /* Info note */
+  .sns-note{display:flex;align-items:flex-start;gap:12px;padding:16px 18px;border-radius:12px;background:rgba(0,217,255,0.06);border:1px solid rgba(0,217,255,0.2);margin-bottom:24px;font-size:12px;color:var(--accent3);line-height:1.7;}
+  .sns-note-icon{font-size:18px;flex-shrink:0;animation:snsIconPulse 2s ease-in-out infinite;}
+  @keyframes snsIconPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+
+  /* Python service status bar */
+  .py-status-bar{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:11px;background:rgba(107,107,136,0.08);border:1px solid var(--border);margin-bottom:24px;font-size:12px;font-family:var(--font-mono);color:var(--muted);transition:all 0.3s;}
+  .py-status-bar.ok{background:rgba(0,230,118,0.05);border-color:rgba(0,230,118,0.25);color:var(--success);}
+  .py-status-bar.err{background:rgba(255,77,109,0.05);border-color:rgba(255,77,109,0.25);color:var(--accent);}
+  .py-dot{font-size:9px;}
+  .btn-recheck{margin-left:auto;padding:5px 12px;background:transparent;border:1px solid var(--border);border-radius:7px;color:var(--muted);font-size:11px;cursor:pointer;font-family:var(--font-body);transition:all 0.2s;}
+  .btn-recheck:hover{border-color:var(--accent3);color:var(--accent3);}
+
+  /* Form rows */
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .form-row.full{grid-template-columns:1fr;}
+  .form-group{margin-bottom:18px;}
+  .form-label{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;transition:color 0.2s;}
+  .form-group:focus-within .form-label{color:var(--accent3);}
+  .form-input{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:11px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);}
+  .form-input:hover{border-color:rgba(124,58,237,0.35);}
+  .form-input:focus{border-color:var(--accent2);box-shadow:0 0 0 3px rgba(124,58,237,0.13);transform:translateY(-1px);background:rgba(26,26,38,0.95);}
+  .form-input::placeholder{color:var(--muted);}
+  select.form-input{cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%236b6b88' d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;}
+  textarea.form-input{resize:vertical;min-height:100px;}
+
+  /* ── AI SECTION ── */
+  .ai-section{margin-top:30px;padding-top:28px;border-top:1px solid var(--border);}
+
+  .ai-section-header{margin-bottom:6px;}
+  .ai-section-title{font-family:var(--font-display);font-size:26px;letter-spacing:2px;background:linear-gradient(135deg,var(--accent2),var(--accent3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .ai-section-sub{font-size:12px;color:var(--muted);margin-bottom:22px;line-height:1.6;}
+  .ai-section-sub strong{color:var(--accent3);}
+
+  /* Steps */
+  .ai-steps{display:flex;align-items:center;gap:10px;margin-bottom:22px;flex-wrap:wrap;}
+  .ai-step{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);}
+  .ai-step-num{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;transition:all 0.3s;flex-shrink:0;}
+  .ai-step.active .ai-step-num{background:var(--accent2);border-color:var(--accent2);color:#fff;box-shadow:0 0 12px rgba(124,58,237,0.5);}
+  .ai-step.done .ai-step-num{background:var(--success);border-color:var(--success);color:#000;}
+  .ai-step.active{color:var(--text);}
+  .ai-step.done{color:var(--success);}
+  .ai-step-arrow{color:var(--border);font-size:14px;}
+
+  /* Generate button */
+  .btn-ai-generate{display:inline-flex;align-items:center;gap:10px;padding:13px 28px;background:linear-gradient(135deg,var(--accent2) 0%,#a855f7 50%,var(--accent3) 100%);border:none;border-radius:12px;color:#fff;font-family:var(--font-body);font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;box-shadow:0 4px 20px rgba(124,58,237,0.3);}
+  .btn-ai-generate::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);transition:left 0.5s;}
+  .btn-ai-generate:hover::before{left:100%;}
+  .btn-ai-generate:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(124,58,237,0.45);}
+  .btn-ai-generate:disabled{opacity:0.55;pointer-events:none;}
+  .btn-ai-generate .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;display:none;}
+  .btn-ai-generate.loading .spinner{display:block;}
+  .btn-ai-generate.loading .btn-ai-label{display:none;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Generated copy box */
+  .ai-output-box{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:20px;margin-top:20px;display:none;animation:fadeUp 0.4s ease;}
+  .ai-output-box.visible{display:block;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  .ai-output-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+  .ai-output-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  .ai-output-text{font-size:13px;color:var(--text);line-height:1.75;white-space:pre-wrap;min-height:40px;}
+  .typing-cursor::after{content:'▋';animation:blink 1s step-end infinite;color:var(--accent2);}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+  .ai-output-actions{display:flex;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+  .btn-use-copy{padding:7px 16px;background:rgba(0,217,255,0.08);border:1px solid rgba(0,217,255,0.3);border-radius:9px;color:var(--accent3);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all 0.25s;font-weight:500;}
+  .btn-use-copy:hover{background:rgba(0,217,255,0.15);transform:translateY(-1px);}
+  .btn-regen{padding:7px 16px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer;font-family:var(--font-body);transition:all 0.25s;}
+  .btn-regen:hover{border-color:var(--accent2);color:var(--accent2);}
+
+  /* Poster section */
+  .poster-section{margin-top:20px;display:none;animation:fadeUp 0.5s ease;}
+  .poster-section.visible{display:block;}
+  .poster-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .poster-label::after{content:'';flex:1;height:1px;background:var(--border);}
+  .poster-wrap{position:relative;border-radius:14px;overflow:hidden;border:1px solid var(--border);background:var(--card);}
+  .poster-img{width:100%;height:auto;display:block;border-radius:13px;}
+  .poster-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:rgba(10,10,15,0.88);border-radius:13px;z-index:2;}
+  .poster-loading.hidden{display:none;}
+  .poster-spinner{width:36px;height:36px;border:3px solid rgba(124,58,237,0.2);border-top-color:var(--accent2);border-radius:50%;animation:spin 0.8s linear infinite;}
+  .poster-loading-text{font-size:13px;color:var(--muted);font-family:var(--font-mono);}
+  .poster-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;}
+  .btn-regen-poster{padding:9px 20px;background:transparent;border:1px solid var(--accent2);border-radius:10px;color:var(--accent2);font-family:var(--font-body);font-weight:500;font-size:13px;cursor:pointer;transition:all 0.25s;}
+  .btn-regen-poster:hover{background:rgba(124,58,237,0.1);transform:translateY(-2px);box-shadow:0 4px 14px rgba(124,58,237,0.2);}
+  .btn-download-poster{padding:9px 20px;background:linear-gradient(135deg,var(--accent2),var(--accent3));border:none;border-radius:10px;color:#fff;font-family:var(--font-body);font-weight:600;font-size:13px;cursor:pointer;transition:all 0.25s;}
+  .btn-download-poster:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,217,255,0.25);}
+
+  /* SNS send button */
+  .btn-announce-submit{padding:14px 34px;background:linear-gradient(135deg,var(--accent3),var(--accent2));border:none;border-radius:12px;color:#fff;font-family:var(--font-body);font-weight:600;font-size:14px;cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);position:relative;overflow:hidden;box-shadow:0 4px 15px rgba(0,217,255,0.2);}
+  .btn-announce-submit::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);transition:left 0.5s;}
+  .btn-announce-submit:hover::before{left:100%;}
+  .btn-announce-submit:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,217,255,0.3);}
+  .send-divider{margin-top:28px;padding-top:24px;border-top:1px solid var(--border);}
+
+  /* MODAL */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(6px);}
+  .modal-overlay.open{display:flex;animation:overlayFade 0.25s ease;}
+  @keyframes overlayFade{from{opacity:0}to{opacity:1}}
+  .modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:34px;width:100%;max-width:520px;animation:modalIn 0.35s cubic-bezier(0.16,1,0.3,1);box-shadow:0 40px 100px rgba(0,0,0,0.6);position:relative;}
+  .modal::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.5),transparent);}
+  @keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+  .modal-title{font-family:var(--font-display);font-size:30px;letter-spacing:2px;margin-bottom:24px;}
+  .modal-footer{display:flex;gap:12px;justify-content:flex-end;margin-top:24px;}
+  .btn-cancel{padding:10px 22px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:var(--font-body);font-size:13px;cursor:pointer;transition:all 0.25s;}
+  .btn-cancel:hover{border-color:var(--muted);color:var(--text);}
+  .btn-save{padding:10px 22px;background:linear-gradient(135deg,var(--accent2),var(--accent3));border:none;border-radius:10px;color:#fff;font-family:var(--font-body);font-weight:600;font-size:13px;cursor:pointer;transition:all 0.3s;}
+  .btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(124,58,237,0.35);}
+
+  /* EMPTY / TOAST */
+  .empty-state{text-align:center;padding:70px 20px;color:var(--muted);animation:fadeUp 0.5s ease;}
+  .empty-state .icon{font-size:52px;margin-bottom:14px;}
+  .empty-state p{font-size:14px;}
+  .toast{position:fixed;bottom:32px;right:32px;background:var(--card);border:1px solid var(--success);border-radius:14px;padding:14px 22px;font-size:13px;color:var(--success);box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 20px rgba(0,230,118,0.1);z-index:1000;display:none;animation:toastIn 0.4s cubic-bezier(0.16,1,0.3,1);}
+  @keyframes toastIn{from{transform:translateX(60px) translateY(10px);opacity:0}to{transform:translateX(0) translateY(0);opacity:1}}
+  @keyframes cardDelete{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(0.9) translateY(10px)}}
+
+  ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:var(--bg);}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  @media(max-width:700px){.stats-row{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}.dash-body{padding:16px}.topnav{padding:0 16px}}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="grid-lines"></div>
+
+<nav class="topnav">
+  <div class="nav-brand">EventPulse</div>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-admin-email"></span>
+    <span class="nav-role-badge">Admin</span>
+    <button class="btn-logout" onclick="logout()">Logout</button>
+  </div>
+</nav>
+
+<div class="dash-body">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-label">Total Events</div><div class="stat-value" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="stat-label">Upcoming</div><div class="stat-value" id="stat-upcoming">0</div></div>
+    <div class="stat-card"><div class="stat-label">Past</div><div class="stat-value" id="stat-past">0</div></div>
+  </div>
+
+  <!-- TABS -->
+  <div class="dash-tabs">
+    <button class="dash-tab active" onclick="switchTab(this,'upcoming')">🗓 Upcoming</button>
+    <button class="dash-tab"        onclick="switchTab(this,'past')">📂 Past Events</button>
+    <button class="dash-tab"        onclick="switchTab(this,'announce')">📣 Announce Event</button>
+  </div>
+
+  <!-- UPCOMING PANEL -->
+  <div class="tab-panel active" id="panel-upcoming">
+    <div class="section-header">
+      <div class="section-title">Upcoming <span>Events</span></div>
+      <button class="btn-add-event" onclick="openAddModal('upcoming')">+ Add Event</button>
+    </div>
+    <div class="events-grid" id="grid-upcoming"></div>
+  </div>
+
+  <!-- PAST PANEL -->
+  <div class="tab-panel" id="panel-past">
+    <div class="section-header">
+      <div class="section-title">Past <span>Events</span></div>
+      <button class="btn-add-event" onclick="openAddModal('past')">+ Add Event</button>
+    </div>
+    <div class="events-grid" id="grid-past"></div>
+  </div>
+
+  <!-- ANNOUNCE PANEL -->
+  <div class="tab-panel" id="panel-announce">
+    <div class="section-title" style="margin-bottom:28px;">Announce <span style="color:var(--accent3)">Event</span></div>
+
+    <div class="announce-form">
+
+      <!-- Info note -->
+      <div class="sns-note">
+        <div class="sns-note-icon">📡</div>
+        <div>
+          Fill in the event details below. Use <strong>✦ Generate with AI</strong> to automatically create
+          announcement copy and a visual poster via your <strong>Python LLM service</strong> (HuggingFace).
+          Then click <strong>Send via SNS</strong> to email all subscribers through AWS Lambda.
+        </div>
+      </div>
+
+      <!-- Python service status -->
+      <div class="py-status-bar" id="py-status-bar">
+        <span class="py-dot" id="py-dot">⬤</span>
+        <span id="py-status-text">Python LLM service: checking...</span>
+        <button class="btn-recheck" onclick="checkPythonService()">↺ Recheck</button>
+      </div>
+
+      <!-- Event Details -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Event Title</label>
+          <input type="text" id="ann-title" class="form-input" placeholder="Annual Tech Summit 2025"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Event Date</label>
+          <input type="date" id="ann-date" class="form-input"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Time</label>
+          <input type="time" id="ann-time" class="form-input"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Venue / Location</label>
+          <input type="text" id="ann-venue" class="form-input" placeholder="Main Auditorium, Block A"/>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Category</label>
+          <input type="text" id="ann-category" class="form-input" placeholder="Technology, Music, Sports..."/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Poster Theme</label>
+          <select id="ann-theme" class="form-input">
+            <option value="0">🌌 Deep Space (Purple)</option>
+            <option value="1">🔥 Crimson Fire (Red)</option>
+            <option value="2">🌿 Emerald Dark (Green)</option>
+            <option value="3">✨ Amber Dusk (Gold)</option>
+            <option value="4">🖤 Mono Noir (B&W)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row full">
+        <div class="form-group">
+          <label class="form-label">Brief Description (AI will expand this)</label>
+          <textarea id="ann-desc" class="form-input" placeholder="Write a short description. The AI will turn it into a full announcement copy..."></textarea>
+        </div>
+      </div>
+
+      <!-- AI Section -->
+      <div class="ai-section">
+        <div class="ai-section-header">
+          <div class="ai-section-title">✦ AI Announcement Generator</div>
+        </div>
+        <div class="ai-section-sub">
+          Powered by <strong>HuggingFace Mistral-7B</strong> via your local Python service.
+          Generates polished copy and creates a visual poster — no external image API needed.
+        </div>
+
+        <!-- Steps indicator -->
+        <div class="ai-steps">
+          <div class="ai-step" id="step-1"><div class="ai-step-num">1</div><span>Generate Copy</span></div>
+          <div class="ai-step-arrow">→</div>
+          <div class="ai-step" id="step-2"><div class="ai-step-num">2</div><span>Build Poster</span></div>
+          <div class="ai-step-arrow">→</div>
+          <div class="ai-step" id="step-3"><div class="ai-step-num">3</div><span>Ready to Send</span></div>
+        </div>
+
+        <!-- Generate button -->
+        <button class="btn-ai-generate" id="btn-generate" onclick="runAIPipeline()">
+          <span class="spinner"></span>
+          <span class="btn-ai-label">✦ Generate with AI</span>
+        </button>
+
+        <!-- Generated copy output -->
+        <div class="ai-output-box" id="ai-copy-box">
+          <div class="ai-output-label">📝 Generated Announcement Copy</div>
+          <div class="ai-output-text" id="ai-copy-text"></div>
+          <div class="ai-output-actions">
+            <button class="btn-regen" onclick="runAIPipeline()">↻ Regenerate</button>
+            <button class="btn-use-copy" onclick="useCopyAsDesc()">✓ Use as Description</button>
+          </div>
+        </div>
+
+        <!-- Poster output -->
+        <div class="poster-section" id="poster-section">
+          <div class="poster-label">🎨 AI-Generated Event Poster</div>
+          <div class="poster-wrap">
+            <img class="poster-img" id="poster-img" src="" alt="Generated event poster"/>
+            <div class="poster-loading" id="poster-loading">
+              <div class="poster-spinner"></div>
+              <div class="poster-loading-text" id="poster-loading-text">Creating poster...</div>
+            </div>
+          </div>
+          <div class="poster-actions">
+            <button class="btn-regen-poster"    onclick="regeneratePoster()">↻ New Theme</button>
+            <button class="btn-download-poster" onclick="downloadPoster()">⬇ Download Poster</button>
+          </div>
+        </div>
+      </div>
+      <!-- END AI SECTION -->
+
+      <!-- Email subject + Send -->
+      <div class="send-divider">
+        <div class="form-row full" style="margin-bottom:20px;">
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label">Email Subject Line</label>
+            <input type="text" id="ann-subject" class="form-input" placeholder="AI will fill this, or type manually..."/>
+          </div>
+        </div>
+        <button class="btn-announce-submit" onclick="announceEvent()">📡 Send Announcement via SNS</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Add Event</div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Title</label>
+        <input type="text" id="modal-title-input" class="form-input" placeholder="Event name"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Date</label>
+        <input type="date" id="modal-date" class="form-input"/>
+      </div>
+    </div>
+    <div class="form-row full">
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea id="modal-desc" class="form-input" style="min-height:80px;" placeholder="Short description..."></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Venue</label>
+        <input type="text" id="modal-venue" class="form-input" placeholder="Location"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="text" id="modal-category" class="form-input" placeholder="e.g. Tech, Music..."/>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ══════════════════════════════════════════
+  //  CONFIG
+  // ══════════════════════════════════════════
+  const API_URL        = "https://mk9b1wx63j.execute-api.ap-south-1.amazonaws.com/prod"; // AWS API Gateway (when ready)
+  const PYTHON_API     = "http://localhost:5000";              // Python LLM Flask server
+  const USE_REAL_API   = true;                                // set true when Lambda is deployed
+
+  // ── Auth guard ──
+  const sessionUser = sessionStorage.getItem('ep_user');
+  if (!sessionUser) { window.location.href = 'login.html'; }
+  const adminUser = JSON.parse(sessionUser || '{}');
+  if (adminUser.role !== 'admin') { window.location.href = 'user.html'; }
+  document.getElementById('nav-admin-email').textContent = adminUser.email || 'admin@eventpulse.com';
+
+  // ── Data store ──
+  let events = JSON.parse(localStorage.getItem('ep_events') || 'null') || {
+    upcoming: [
+      {id:1,title:'Tech Summit 2025',   desc:'Annual technology conference featuring keynotes, workshops, and networking.',  date:'2025-08-15',venue:'Main Auditorium',  category:'Technology'},
+      {id:2,title:'Design Hackathon',   desc:'A 48-hour design sprint to solve real-world UX challenges.',                  date:'2025-09-02',venue:'Innovation Hub',   category:'Design'},
+      {id:3,title:'AI Workshop Series', desc:'Hands-on workshops exploring practical applications of AI.',                  date:'2025-09-20',venue:'Lab Block B',       category:'AI/ML'},
+    ],
+    past: [
+      {id:4,title:'Product Launch 2024',desc:'Unveiling of our flagship product to stakeholders and press.',                date:'2024-11-10',venue:'Conference Hall 1', category:'Product'},
+      {id:5,title:'Annual Gala',         desc:'An evening of celebration, awards, and networking.',                          date:'2024-12-20',venue:'Grand Ballroom',    category:'Social'},
+    ]
+  };
+  let nextId=10, editingId=null, editingType=null;
+  function saveToStorage(){ localStorage.setItem('ep_events',JSON.stringify(events)); }
+
+  // ── Animated counter ──
+  function animateCount(el, target){
+    const start=parseInt(el.textContent)||0;
+    if(start===target)return;
+    let step=0; const steps=20;
+    const timer=setInterval(()=>{
+      step++;
+      el.textContent=Math.round(start+(target-start)*(step/steps));
+      if(step>=steps){el.textContent=target;clearInterval(timer);}
+    },400/steps);
+  }
+
+  function renderAll(){
+    animateCount(document.getElementById('stat-total'),    events.upcoming.length+events.past.length);
+    animateCount(document.getElementById('stat-upcoming'), events.upcoming.length);
+    animateCount(document.getElementById('stat-past'),     events.past.length);
+    renderGrid('grid-upcoming',events.upcoming,'upcoming');
+    renderGrid('grid-past',    events.past,   'past');
+  }
+
+  function renderGrid(containerId, list, type){
+    const el=document.getElementById(containerId);
+    if(!list.length){
+      el.innerHTML=`<div class="empty-state"><div class="icon">📭</div><p>No ${type} events yet.</p></div>`;return;
+    }
+    el.innerHTML=list.map((ev,i)=>`
+      <div class="event-card" style="animation-delay:${i*0.08}s" id="card-${ev.id}">
+        <span class="event-type-badge type-${type}">${type==='upcoming'?'🗓 Upcoming':'📂 Past'}</span>
+        <div class="event-title">${ev.title}</div>
+        <div class="event-desc">${ev.desc}</div>
+        <div class="event-meta">
+          <span>📅 ${formatDate(ev.date)}</span>
+          <span>📍 ${ev.venue}</span>
+          ${ev.category?`<span>🏷 ${ev.category}</span>`:''}
+        </div>
+        <div class="admin-actions">
+          <button class="btn-sm btn-edit"     onclick="openEditModal('${type}',${ev.id})">✏️ Edit</button>
+          <button class="btn-sm btn-delete"   onclick="deleteEvent('${type}',${ev.id})">🗑 Delete</button>
+          <button class="btn-sm btn-announce" onclick="prefillAnnounce('${ev.title}','${ev.date}','${ev.venue}','${ev.category||''}')">📣 Announce</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function formatDate(d){
+    if(!d)return'';
+    return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
+  }
+
+  // ── Tabs ──
+  function switchTab(btn,panel){
+    document.querySelectorAll('.dash-tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`panel-${panel}`).classList.add('active');
+  }
+
+  // ── Modal ──
+  function openAddModal(type){
+    editingId=null;editingType=type;
+    document.getElementById('modal-title').textContent=`Add ${type==='upcoming'?'Upcoming':'Past'} Event`;
+    ['modal-title-input','modal-date','modal-desc','modal-venue','modal-category'].forEach(id=>{document.getElementById(id).value='';});
+    document.getElementById('event-modal').classList.add('open');
+    setTimeout(()=>document.getElementById('modal-title-input').focus(),100);
+  }
+  function openEditModal(type,id){
+    const ev=events[type].find(e=>e.id===id);if(!ev)return;
+    editingId=id;editingType=type;
+    document.getElementById('modal-title').textContent='Edit Event';
+    document.getElementById('modal-title-input').value=ev.title;
+    document.getElementById('modal-date').value=ev.date;
+    document.getElementById('modal-desc').value=ev.desc;
+    document.getElementById('modal-venue').value=ev.venue;
+    document.getElementById('modal-category').value=ev.category||'';
+    document.getElementById('event-modal').classList.add('open');
+  }
+  function closeModal(){document.getElementById('event-modal').classList.remove('open');}
+  document.getElementById('event-modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+  function saveEvent(){
+    const title   =document.getElementById('modal-title-input').value.trim();
+    const date    =document.getElementById('modal-date').value;
+    const desc    =document.getElementById('modal-desc').value.trim();
+    const venue   =document.getElementById('modal-venue').value.trim();
+    const category=document.getElementById('modal-category').value.trim();
+    if(!title||!date){showToast('⚠️ Title and date are required.');return;}
+    if(editingId!==null){
+      const idx=events[editingType].findIndex(e=>e.id===editingId);
+      events[editingType][idx]={id:editingId,title,date,desc,venue,category};
+      showToast('✅ Event updated!');
+    } else {
+      events[editingType].push({id:nextId++,title,date,desc,venue,category});
+      showToast('✅ Event added!');
+    }
+    saveToStorage();closeModal();renderAll();
+  }
+
+  function deleteEvent(type,id){
+    if(!confirm('Delete this event?'))return;
+    const card=document.getElementById(`card-${id}`);
+    if(card){card.style.animation='cardDelete 0.35s ease forwards';setTimeout(()=>{events[type]=events[type].filter(e=>e.id!==id);saveToStorage();showToast('🗑 Event deleted.');renderAll();},300);}
+    else{events[type]=events[type].filter(e=>e.id!==id);saveToStorage();showToast('🗑 Event deleted.');renderAll();}
+  }
+
+  // ── Prefill announce form ──
+  function prefillAnnounce(title,date,venue,category){
+    switchTab(document.querySelectorAll('.dash-tab')[2],'announce');
+    document.getElementById('ann-title').value   =title;
+    document.getElementById('ann-date').value    =date;
+    document.getElementById('ann-venue').value   =venue;
+    document.getElementById('ann-category').value=category;
+    document.getElementById('ann-subject').value =`📣 New Event: ${title}`;
+    setTimeout(()=>document.getElementById('ann-desc').focus(),200);
+  }
+
+  // ══════════════════════════════════════════
+  //  PYTHON LLM SERVICE — http://localhost:5000
+  // ══════════════════════════════════════════
+  let generatedPosterBase64='';
+  let currentThemeIndex=0;
+
+  async function checkPythonService(){
+    const bar =document.getElementById('py-status-bar');
+    const dot =document.getElementById('py-dot');
+    const txt =document.getElementById('py-status-text');
+    dot.textContent='⬤';bar.className='py-status-bar';
+    txt.textContent='Checking Python LLM service...';
+    try{
+      const res=await fetch(`${PYTHON_API}/health`,{signal:AbortSignal.timeout(3000)});
+      const data=await res.json();
+      if(data.status==='ok'){
+        bar.className='py-status-bar ok';
+        txt.textContent=`✅ Python LLM service running · ${data.model}`;
+      } else throw new Error();
+    } catch{
+      bar.className='py-status-bar err';
+      txt.textContent='❌ Python service offline — run: python llm_service.py';
+    }
+  }
+  checkPythonService();
+
+  function setStep(n){
+    [1,2,3].forEach(i=>{
+      const el=document.getElementById(`step-${i}`);
+      if(!el)return;
+      el.classList.remove('active','done');
+      if(i<n)el.classList.add('done');
+      if(i===n)el.classList.add('active');
+    });
+  }
+
+  async function runAIPipeline(){
+    const title   =document.getElementById('ann-title').value.trim();
+    const date    =document.getElementById('ann-date').value;
+    const time    =document.getElementById('ann-time').value;
+    const venue   =document.getElementById('ann-venue').value.trim();
+    const desc    =document.getElementById('ann-desc').value.trim();
+    const category=document.getElementById('ann-category').value.trim();
+    currentThemeIndex=parseInt(document.getElementById('ann-theme').value)||0;
+
+    if(!title||!date||!venue){showToast('⚠️ Fill in Title, Date and Venue first');return;}
+
+    const btn=document.getElementById('btn-generate');
+    btn.classList.add('loading');btn.disabled=true;
+
+    document.getElementById('ai-copy-box').classList.remove('visible');
+    document.getElementById('poster-section').classList.remove('visible');
+    setStep(1);
+
+    try{
+      const res=await fetch(`${PYTHON_API}/generate-all`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title,date,time,venue,description:desc,category,theme_index:currentThemeIndex})
+      });
+      if(!res.ok) throw new Error(`Python service error: ${res.status}`);
+      const data=await res.json();
+      if(data.error) throw new Error(data.error);
+
+      setStep(2);
+
+      // Show generated text with typewriter
+      if(data.announcement_text){
+        const box=document.getElementById('ai-copy-box');
+        const el =document.getElementById('ai-copy-text');
+        box.classList.add('visible');
+        el.textContent='';
+        el.classList.add('typing-cursor');
+        await typeWrite(el,data.announcement_text,12);
+        el.classList.remove('typing-cursor');
+      }
+
+      // Auto-fill subject line
+      if(data.subject_line){
+        document.getElementById('ann-subject').value=data.subject_line;
+      }
+
+      setStep(3);
+
+      // Show poster
+      if(data.poster_base64){
+        generatedPosterBase64=data.poster_base64;
+        const section =document.getElementById('poster-section');
+        const img     =document.getElementById('poster-img');
+        const loading =document.getElementById('poster-loading');
+        section.classList.add('visible');
+        loading.classList.remove('hidden');
+        img.onload=()=>loading.classList.add('hidden');
+        img.src=data.poster_base64;
+        if(img.complete)loading.classList.add('hidden');
+      }
+
+      showToast(`✅ AI generation complete!${data.theme_name?' Theme: '+data.theme_name:''}`);
+
+    } catch(err){
+      showToast('❌ '+err.message);
+      console.error(err);
+      if(err.message.includes('fetch')||err.message.includes('Failed to fetch')){
+        showToast('❌ Python service not running. Open CMD → python llm_service.py');
+      }
+    }
+
+    btn.classList.remove('loading');btn.disabled=false;
+  }
+
+  async function regeneratePoster(){
+    currentThemeIndex=(currentThemeIndex+1)%5;
+    document.getElementById('ann-theme').value=currentThemeIndex;
+    const title   =document.getElementById('ann-title').value.trim()||'Event';
+    const date    =document.getElementById('ann-date').value||'';
+    const time    =document.getElementById('ann-time').value||'';
+    const venue   =document.getElementById('ann-venue').value.trim()||'Venue TBA';
+    const category=document.getElementById('ann-category').value.trim()||'';
+    const loading =document.getElementById('poster-loading');
+    loading.classList.remove('hidden');
+    try{
+      const res=await fetch(`${PYTHON_API}/generate-poster`,{
+        method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({title,date,time,venue,category,theme_index:currentThemeIndex})
+      });
+      const data=await res.json();
+      if(data.poster_base64){
+        generatedPosterBase64=data.poster_base64;
+        const img=document.getElementById('poster-img');
+        img.src=data.poster_base64;
+        img.onload=()=>loading.classList.add('hidden');
+        showToast(`🎨 Theme: ${data.theme_name||'Updated'}`);
+      }
+    } catch(err){
+      showToast('❌ '+err.message);
+      loading.classList.add('hidden');
+    }
+  }
+
+  function downloadPoster(){
+    if(!generatedPosterBase64){showToast('⚠️ Generate a poster first');return;}
+    const a=document.createElement('a');
+    const name=document.getElementById('ann-title').value.trim()||'event';
+    a.download=`${name.replace(/\s+/g,'-').toLowerCase()}-poster.png`;
+    a.href=generatedPosterBase64;a.click();
+    showToast('📥 Poster downloaded!');
+  }
+
+  function useCopyAsDesc(){
+    document.getElementById('ann-desc').value=document.getElementById('ai-copy-text').textContent;
+    showToast('✅ Copy applied to description!');
+  }
+
+  function typeWrite(el,text,speed=12){
+    return new Promise(resolve=>{
+      let i=0;
+      const tick=()=>{if(i<text.length){el.textContent+=text[i++];setTimeout(tick,speed);}else resolve();};
+      tick();
+    });
+  }
+
+  // ── Announce via SNS ──
+  async function announceEvent(){
+    const title  =document.getElementById('ann-title').value.trim();
+    const date   =document.getElementById('ann-date').value;
+    const venue  =document.getElementById('ann-venue').value.trim();
+    const desc   =document.getElementById('ann-desc').value.trim();
+    const subject=document.getElementById('ann-subject').value.trim();
+    const category=document.getElementById('ann-category').value.trim();
+    if(!title||!date||!venue){showToast('⚠️ Title, Date and Venue are required.');return;}
+
+    const btn=document.querySelector('.btn-announce-submit');
+    btn.textContent='⏳ Sending...';btn.style.pointerEvents='none';
+
+    try{
+      if(USE_REAL_API){
+        const token=sessionStorage.getItem('ep_token');
+        const res=await fetch(`${API_URL}/announce`,{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+          body:JSON.stringify({title,date,venue,desc,subject})
+        });
+        const data=await res.json();
+        if(!res.ok) throw new Error(data.message||'Announce failed');
+        showToast('📡 Announcement sent via AWS SNS!');
+      } else {
+        await new Promise(r=>setTimeout(r,1200));
+        showToast('📡 Announcement sent via AWS SNS! (demo mode)');
+      }
+
+      events.upcoming.push({id:nextId++,title,date,desc:desc||'Event announced.',venue,category:category||'General'});
+      saveToStorage();
+
+      ['ann-title','ann-date','ann-time','ann-venue','ann-desc','ann-subject','ann-category'].forEach(id=>{document.getElementById(id).value='';});
+      document.getElementById('ann-theme').value='0';
+      document.getElementById('ai-copy-box').classList.remove('visible');
+      document.getElementById('poster-section').classList.remove('visible');
+      generatedPosterBase64='';
+      renderAll();
+
+    } catch(e){
+      showToast('❌ '+e.message);
+    }
+    btn.textContent='📡 Send Announcement via SNS';btn.style.pointerEvents='auto';
+  }
+
+  function logout(){
+    sessionStorage.removeItem('ep_user');sessionStorage.removeItem('ep_token');
+    window.location.href='login.html';
+  }
+
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.style.display='block';
+    t.style.animation='none';
+    requestAnimationFrame(()=>{t.style.animation='toastIn 0.4s cubic-bezier(0.16,1,0.3,1)';});
+    clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.display='none';},3500);
+  }
+
+  renderAll();
+</script>
+</body>
+</html>

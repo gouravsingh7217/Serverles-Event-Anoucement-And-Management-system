@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EventPulse — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:#0a0a0f;--surface:#12121a;--card:#1a1a26;--border:#2a2a3a;
+    --accent:#ff4d6d;--accent2:#7c3aed;--accent3:#00d9ff;
+    --text:#e8e8f0;--muted:#6b6b88;--success:#00e676;
+    --font-display:'Bebas Neue',sans-serif;
+    --font-body:'DM Sans',sans-serif;
+    --font-mono:'DM Mono',monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative;}
+  .orb{position:fixed;border-radius:50%;pointer-events:none;filter:blur(80px);animation:orbFloat 8s ease-in-out infinite;}
+  .orb-1{width:500px;height:500px;background:radial-gradient(circle,rgba(124,58,237,0.22) 0%,transparent 70%);top:-150px;left:-150px;animation-delay:0s;}
+  .orb-2{width:400px;height:400px;background:radial-gradient(circle,rgba(255,77,109,0.15) 0%,transparent 70%);bottom:-100px;right:-100px;animation-delay:-3s;}
+  .orb-3{width:300px;height:300px;background:radial-gradient(circle,rgba(0,217,255,0.1) 0%,transparent 70%);top:50%;right:20%;animation-delay:-5s;}
+  @keyframes orbFloat{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(30px,-20px) scale(1.05)}66%{transform:translate(-20px,15px) scale(0.97)}}
+  .grid-lines{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:linear-gradient(rgba(42,42,58,0.3) 1px,transparent 1px),linear-gradient(90deg,rgba(42,42,58,0.3) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%);}
+  .particle{position:fixed;width:2px;height:2px;border-radius:50%;pointer-events:none;animation:particleDrift linear infinite;}
+  @keyframes particleDrift{0%{transform:translateY(100vh) translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateY(-100px) translateX(var(--drift));opacity:0}}
+  .login-container{position:relative;z-index:1;width:100%;max-width:460px;padding:20px;animation:fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) forwards;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+  .brand{text-align:center;margin-bottom:40px;}
+  .brand-name{font-family:var(--font-display);font-size:72px;letter-spacing:6px;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 55%,var(--accent3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;filter:drop-shadow(0 0 30px rgba(124,58,237,0.3));animation:brandPulse 4s ease-in-out infinite;}
+  @keyframes brandPulse{0%,100%{filter:drop-shadow(0 0 20px rgba(124,58,237,0.25))}50%{filter:drop-shadow(0 0 40px rgba(124,58,237,0.45))}}
+  .brand-sub{font-size:11px;letter-spacing:6px;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+  .login-card{background:rgba(18,18,26,0.85);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:20px;padding:36px;box-shadow:0 40px 100px rgba(0,0,0,0.6),0 0 0 1px rgba(124,58,237,0.08),inset 0 1px 0 rgba(255,255,255,0.05);animation:fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) 0.15s both;position:relative;overflow:hidden;transition:box-shadow 0.4s;}
+  .login-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(124,58,237,0.5),rgba(0,217,255,0.5),transparent);animation:shimmerLine 3s ease-in-out infinite;}
+  @keyframes shimmerLine{0%,100%{opacity:0.4}50%{opacity:1}}
+  .login-card:hover{box-shadow:0 50px 120px rgba(0,0,0,0.65),0 0 0 1px rgba(124,58,237,0.15),inset 0 1px 0 rgba(255,255,255,0.06);}
+  .tab-row{display:flex;gap:4px;background:var(--bg);border-radius:12px;padding:4px;margin-bottom:28px;border:1px solid var(--border);}
+  .tab-btn{flex:1;padding:10px;background:transparent;border:none;border-radius:9px;color:var(--muted);font-family:var(--font-body);font-size:13px;font-weight:500;cursor:pointer;letter-spacing:0.5px;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);}
+  .tab-btn.active{background:var(--card);color:var(--text);box-shadow:0 2px 12px rgba(0,0,0,0.35),inset 0 1px 0 rgba(255,255,255,0.05);}
+  .tab-btn:not(.active):hover{color:var(--text);}
+  .form-group{margin-bottom:18px;}
+  .form-label{display:block;font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:8px;transition:color 0.2s;}
+  .form-group:focus-within .form-label{color:var(--accent3);}
+  .form-input{width:100%;padding:13px 16px;background:var(--card);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);}
+  .form-input:hover{border-color:rgba(124,58,237,0.4);background:rgba(26,26,38,0.9);}
+  .form-input:focus{border-color:var(--accent2);background:rgba(26,26,38,1);box-shadow:0 0 0 3px rgba(124,58,237,0.15),0 4px 16px rgba(0,0,0,0.2);transform:translateY(-1px);}
+  .form-input::placeholder{color:var(--muted);}
+  .form-input.success-input{border-color:var(--success);box-shadow:0 0 0 3px rgba(0,230,118,0.12);}
+  .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);border:none;border-radius:12px;color:#fff;font-family:var(--font-body);font-size:14px;font-weight:600;letter-spacing:1px;cursor:pointer;transition:all 0.3s cubic-bezier(0.16,1,0.3,1);margin-top:4px;position:relative;overflow:hidden;}
+  .btn-primary::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.12),transparent);transition:left 0.5s;}
+  .btn-primary:hover::before{left:100%;}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,77,109,0.35);}
+  .btn-primary:active{transform:translateY(0) scale(0.99);}
+  .btn-primary.loading{pointer-events:none;opacity:0.8;}
+  .btn-primary.loading::after{content:'';position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,0.3);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;top:50%;right:16px;transform:translateY(-50%);}
+  @keyframes spin{to{transform:translateY(-50%) rotate(360deg)}}
+  .form-toggle{text-align:center;margin-top:18px;font-size:13px;color:var(--muted);}
+  .form-toggle a{color:var(--accent3);cursor:pointer;text-decoration:none;font-weight:500;}
+  .form-toggle a:hover{text-decoration:underline;}
+  .error-msg{background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:10px;padding:10px 14px;font-size:13px;color:var(--accent);margin-bottom:16px;display:none;animation:shakeX 0.4s ease;}
+  @keyframes shakeX{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(5px)}}
+  .demo-hint{background:rgba(0,217,255,0.05);border:1px solid rgba(0,217,255,0.15);border-radius:12px;padding:14px 16px;margin-bottom:22px;font-size:12px;color:var(--muted);transition:border-color 0.2s;}
+  .demo-hint:hover{border-color:rgba(0,217,255,0.3);}
+  .demo-hint strong{color:var(--accent3);}
+  .demo-row{display:flex;gap:8px;margin-top:10px;}
+  .btn-demo{flex:1;padding:8px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12px;cursor:pointer;transition:all 0.25s cubic-bezier(0.16,1,0.3,1);font-family:var(--font-body);font-weight:500;}
+  .btn-demo:hover{border-color:var(--accent3);color:var(--accent3);background:rgba(0,217,255,0.06);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,217,255,0.12);}
+  .toast{position:fixed;bottom:32px;right:32px;background:var(--card);border:1px solid var(--success);border-radius:14px;padding:14px 22px;font-size:13px;color:var(--success);box-shadow:0 8px 32px rgba(0,0,0,0.5),0 0 20px rgba(0,230,118,0.1);z-index:1000;display:none;animation:toastSlide 0.4s cubic-bezier(0.16,1,0.3,1);}
+  @keyframes toastSlide{from{transform:translateX(80px) translateY(10px);opacity:0}to{transform:translateX(0) translateY(0);opacity:1}}
+  .form-panels-wrap{position:relative;}
+  .form-panel{transition:opacity 0.25s ease,transform 0.25s ease;}
+  .form-panel.hidden{opacity:0;transform:translateY(8px);pointer-events:none;position:absolute;}
+  .form-panel.visible{opacity:1;transform:translateY(0);}
+  @media(max-width:500px){.login-card{padding:24px}.brand-name{font-size:54px}}
+</style>
+</head>
+<body>
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+<div class="grid-lines"></div>
+
+<div class="login-container">
+  <div class="brand">
+    <div class="brand-name">EventPulse</div>
+    <div class="brand-sub">Event Announcement &amp; Management</div>
+  </div>
+  <div class="login-card">
+    <div class="tab-row">
+      <button class="tab-btn active" id="tab-login"  onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn"        id="tab-signup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    <div class="form-panels-wrap">
+      <!-- LOGIN -->
+      <div id="form-login" class="form-panel visible">
+        <div class="demo-hint">
+          <strong>Demo Credentials</strong>
+          <div class="demo-row">
+            <button class="btn-demo" onclick="quickLogin('user')">👤 User Login</button>
+            <button class="btn-demo" onclick="quickLogin('admin')">🔑 Admin Login</button>
+          </div>
+        </div>
+        <div class="error-msg" id="login-error"></div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="login-email" class="form-input" placeholder="your@email.com" oninput="validateEmail(this)"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-password" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')handleLogin()"/>
+        </div>
+        <button class="btn-primary" id="login-btn" onclick="handleLogin()">Sign In →</button>
+      </div>
+      <!-- SIGNUP -->
+      <div id="form-signup" class="form-panel hidden" style="display:none;">
+        <div class="error-msg" id="signup-error"></div>
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="signup-name" class="form-input" placeholder="John Doe"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="signup-email" class="form-input" placeholder="your@email.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" id="signup-password" class="form-input" placeholder="Min. 8 characters" onkeydown="if(event.key==='Enter')handleSignup()"/>
+        </div>
+        <button class="btn-primary" onclick="handleSignup()">Create Account →</button>
+        <div class="form-toggle">Already have an account? <a onclick="switchTab('login')">Sign In</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Config ──
+  const API_URL      = "https://mk9b1wx63j.execute-api.ap-south-1.amazonaws.com/prod";
+  const USE_REAL_API = true;
+
+  // ── Particles ──
+  ['#ff4d6d','#7c3aed','#00d9ff','#a78bfa'].forEach(c => {
+    for(let i=0;i<5;i++){
+      const p=document.createElement('div');p.className='particle';
+      p.style.cssText=`left:${Math.random()*100}%;background:${c};opacity:${0.3+Math.random()*0.4};--drift:${(Math.random()-0.5)*100}px;animation-duration:${6+Math.random()*10}s;animation-delay:${-Math.random()*15}s;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;`;
+      document.body.appendChild(p);
+    }
+  });
+
+  // ── Card tilt ──
+  const card=document.querySelector('.login-card');
+  document.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const dx=(e.clientX-(r.left+r.width/2))/window.innerWidth*6;
+    const dy=(e.clientY-(r.top+r.height/2))/window.innerHeight*6;
+    card.style.transition='transform 0.1s ease,box-shadow 0.4s';
+    card.style.transform=`perspective(1000px) rotateY(${dx}deg) rotateX(${-dy}deg)`;
+  });
+  document.addEventListener('mouseleave',()=>{
+    card.style.transition='transform 0.5s ease';
+    card.style.transform='perspective(1000px) rotateY(0) rotateX(0)';
+  });
+
+  // ── Users ──
+  const DEMO_USERS=[
+    {email:'user@demo.com',  password:'user123',  name:'Alex Johnson',role:'user'},
+    {email:'admin@demo.com', password:'admin123', name:'Admin User',  role:'admin'},
+  ];
+  const savedUsers=JSON.parse(localStorage.getItem('ep_users')||'[]');
+  const ALL_USERS=[...DEMO_USERS,...savedUsers];
+
+  function validateEmail(input){
+    input.classList.toggle('success-input',/\S+@\S+\.\S+/.test(input.value));
+  }
+
+  function switchTab(tab){
+    const lp=document.getElementById('form-login');
+    const sp=document.getElementById('form-signup');
+    document.getElementById('tab-login').classList.toggle('active', tab==='login');
+    document.getElementById('tab-signup').classList.toggle('active',tab==='signup');
+    if(tab==='login'){
+      sp.style.display='none'; sp.classList.remove('visible');sp.classList.add('hidden');
+      lp.style.display='block';requestAnimationFrame(()=>{lp.classList.remove('hidden');lp.classList.add('visible');});
+    } else {
+      lp.style.display='none'; lp.classList.remove('visible');lp.classList.add('hidden');
+      sp.style.display='block';requestAnimationFrame(()=>{sp.classList.remove('hidden');sp.classList.add('visible');});
+    }
+  }
+
+  function quickLogin(role){
+    document.getElementById('login-email').value   =role==='admin'?'admin@demo.com':'user@demo.com';
+    document.getElementById('login-password').value=role==='admin'?'admin123':'user123';
+    validateEmail(document.getElementById('login-email'));
+    setTimeout(handleLogin,200);
+  }
+
+  async function handleLogin(){
+    const btn=document.getElementById('login-btn');
+    const email=document.getElementById('login-email').value.trim();
+    const pass =document.getElementById('login-password').value;
+    const err  =document.getElementById('login-error');
+    btn.classList.add('loading');btn.textContent='Signing in...';
+    try{
+      let user=null;
+      if(USE_REAL_API){
+        const res=await fetch(`${API_URL}/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+        const data=await res.json();
+        if(!res.ok) throw new Error(data.message||'Invalid credentials');
+        sessionStorage.setItem('ep_token',data.token);
+        user=data.user;
+      } else {
+        await new Promise(r=>setTimeout(r,700));
+        user=ALL_USERS.find(u=>u.email===email&&u.password===pass);
+        if(!user) throw new Error('Invalid email or password. Try the demo buttons above.');
+      }
+      err.style.display='none';
+      sessionStorage.setItem('ep_user',JSON.stringify({name:user.name||user.full_name,email:user.email,role:user.role}));
+      showToast(`✅ Welcome back, ${(user.name||user.full_name).split(' ')[0]}!`);
+      btn.style.background='linear-gradient(135deg,#00e676,#00b0ff)';
+      btn.textContent='✓ Redirecting...';
+      setTimeout(()=>{ window.location.href=user.role==='admin'?'admin.html':'user.html'; },800);
+    } catch(e){
+      btn.classList.remove('loading');btn.textContent='Sign In →';
+      err.textContent=e.message;err.style.display='block';
+      err.style.animation='none';
+      requestAnimationFrame(()=>{err.style.animation='shakeX 0.4s ease';});
+      document.getElementById('login-password').value='';
+    }
+  }
+
+  async function handleSignup(){
+    const name =document.getElementById('signup-name').value.trim();
+    const email=document.getElementById('signup-email').value.trim();
+    const pass =document.getElementById('signup-password').value;
+    const err  =document.getElementById('signup-error');
+    if(!name||!email||!pass){showErr(err,'Please fill in all fields.');return;}
+    if(pass.length<8){showErr(err,'Password must be at least 8 characters.');return;}
+    if(ALL_USERS.find(u=>u.email===email)){showErr(err,'An account with this email already exists.');return;}
+    try{
+      if(USE_REAL_API){
+        const res=await fetch(`${API_URL}/auth/signup`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({full_name:name,email,password:pass})});
+        const data=await res.json();
+        if(!res.ok) throw new Error(data.message||'Signup failed');
+      } else {
+        const ex=JSON.parse(localStorage.getItem('ep_users')||'[]');
+        localStorage.setItem('ep_users',JSON.stringify([...ex,{email,password:pass,name,role:'user'}]));
+      }
+      err.style.display='none';
+      showToast('✅ Account created! Please sign in.');
+      switchTab('login');
+      document.getElementById('login-email').value=email;
+      validateEmail(document.getElementById('login-email'));
+    } catch(e){ showErr(err,e.message); }
+  }
+
+  function showErr(el,msg){el.textContent=msg;el.style.display='block';el.style.animation='none';requestAnimationFrame(()=>{el.style.animation='shakeX 0.4s ease';});}
+
+  function showToast(msg){
+    const t=document.getElementById('toast');
+    t.textContent=msg;t.style.display='block';
+    t.style.animation='none';
+    requestAnimationFrame(()=>{t.style.animation='toastSlide 0.4s cubic-bezier(0.16,1,0.3,1)';});
+    clearTimeout(t._timer);t._timer=setTimeout(()=>{t.style.display='none';},3200);
+  }
+
+  // Redirect if already logged in
+  const existing=sessionStorage.getItem('ep_user');
+  if(existing){const u=JSON.parse(existing);window.location.href=u.role==='admin'?'admin.html':'user.html';}
+</script>
+</body>
+</html>
